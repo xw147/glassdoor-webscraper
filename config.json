@@ -1,0 +1,13 @@
+{
+  "GlassdoorConfig":{
+    "Username":"insert-username-here",
+    "Password":"insert-password-here"
+  },
+  "MongoDbConfig":{
+    "Server":"localhost",
+    "Port":"27017",
+    "Database":"glassdoordb",
+    "ReviewCollection":"reviews",
+    "CompanyCollection":"companies"
+  }
+}
