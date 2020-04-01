@@ -112,14 +112,10 @@ class GlassdoorSpider(InitSpider):
   def company_reviews_parse(self, response):
     #Iterate through each review element in the DOM tree
     reviews = response.css('ol.empReviews li.empReview')
-
     #Identify the opinions section and select the three options
     for employee_review in reviews:
-
-      opinion_flags = employee_review.css('div.row.reviewBodyCell span *::text').extract()
-      #ceo_opinion_flag = employee_review.css('div.tightLt.col.span-1-3 span.middle span.showDesk::text').extract_first()
-
-
+      opinion_flags = employee_review.css('div.row.reviewBodyCell '+
+        'span *::text').extract()
       opinion_dict = {
         'recommend':None,
         'outlook':None,
@@ -134,18 +130,19 @@ class GlassdoorSpider(InitSpider):
           opinion_dict['opinion'] = opinion
         else:
           continue
-
       verbatim_comment_dict = {
         'Pros': None,
         'Cons': None,
         'Advice to Management': None
       }      
 
-      verbatim_comments = employee_review.css('div.v2__EIReviewDetailsV2__fullWidth')
+      verbatim_comments = employee_review.css('div.'+
+        'v2__EIReviewDetailsV2__fullWidth')
       
       for comment in verbatim_comments:
         section = comment.css('p.strong.mb-0.mt-xsm::text').extract_first()
-        value = comment.css('p.v2__EIReviewDetailsV2__bodyColor::text').extract_first()
+        value = (comment.css('p.v2__EIReviewDetailsV2__bodyColor::text')
+          .extract_first())
         if section is not None:
           verbatim_comment_dict[section] = value
         else: 
@@ -157,8 +154,6 @@ class GlassdoorSpider(InitSpider):
         .css('span.gdBars.gdRatings.med::attr(title)').extract())
 
       review_item = GlassdoorReviewItem()
-
-
 
       review_item['search_name'] = self.company_name
       review_item['glassdoor_company_name']= (
@@ -180,17 +175,17 @@ class GlassdoorSpider(InitSpider):
       review_item['advice_to_management_description'] = (
         verbatim_comment_dict['Advice to Management'])
       review_item['star_rating_overall']= (
-        employee_review.css('span.value-title::attr(title)').extract_first())
+        float(employee_review.css('span.value-title::attr(title)').extract_first()))
       review_item['star_rating_work_life_balance']= (
-        sub_star_ratings[0] if len(sub_star_ratings) >= 1 else None)
+        float(sub_star_ratings[0]) if len(sub_star_ratings) >= 1 else None)
       review_item['star_rating_culture_and_values']= (
-        sub_star_ratings[1] if len(sub_star_ratings)>=2 else None)
+        float(sub_star_ratings[1]) if len(sub_star_ratings)>=2 else None)
       review_item['star_rating_career_opportunities']= (
-        sub_star_ratings[2] if len(sub_star_ratings)>=3 else None)
+        float(sub_star_ratings[2]) if len(sub_star_ratings)>=3 else None)
       review_item['star_rating_comp_and_benefits']= (
-        sub_star_ratings[3] if len(sub_star_ratings)>=4 else None)
+        float(sub_star_ratings[3]) if len(sub_star_ratings)>=4 else None)
       review_item['star_rating_senior_management']= (
-        sub_star_ratings[4] if len(sub_star_ratings)>=5 else None)
+        float(sub_star_ratings[4]) if len(sub_star_ratings)>=5 else None)
       review_item['review_date']= (
         employee_review.css('time.date::attr(datetime)').extract_first())
 
@@ -198,8 +193,8 @@ class GlassdoorSpider(InitSpider):
       yield review_item      
 
     # Find the pagination link and follow it to process the next set of reviews
-    #follow_link = response.css('li.pagination__PaginationStyle__next>a:'
-    #  'not(.pagination__ArrowStyle__disabled)::attr(href)').extract_first()
+    follow_link = response.css('li.pagination__PaginationStyle__next>a:'
+      'not(.pagination__ArrowStyle__disabled)::attr(href)').extract_first()
 
     if follow_link is not None:
       self.custom_wait()

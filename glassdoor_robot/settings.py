@@ -9,6 +9,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+
 BOT_NAME = 'glassdoor_robot'
 
 SPIDER_MODULES = ['glassdoor_robot.spiders']
@@ -64,9 +65,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'glassdoor_robot.pipelines.GlassdoorRobotPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'glassdoor_robot.pipelines.GlassdoorRobotPipeline':300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

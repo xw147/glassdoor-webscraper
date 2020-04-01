@@ -1,11 +1,11 @@
 {
   "GlassdoorConfig":{
-    "Username":"insert-username-here",
-    "Password":"insert-password-here"
+    "Username":"enter-username-here",
+    "Password":"enter-password-here"
   },
   "MongoDbConfig":{
-    "Server":"localhost",
-    "Port":"27017",
+    "Server":"172.17.0.2",
+    "Port":27017,
     "Database":"glassdoordb",
     "ReviewCollection":"reviews",
     "CompanyCollection":"companies"
