@@ -1,7 +1,7 @@
 {
   "GlassdoorConfig":{
-    "Username":"enter-username-here",
-    "Password":"enter-password-here"
+    "Username":"jimmyLam2017@hotmail.com",
+    "Password":"corsaiR2017p"
   },
   "MongoDbConfig":{
     "Server":"172.17.0.2",
