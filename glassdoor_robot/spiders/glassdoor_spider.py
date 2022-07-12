@@ -4,6 +4,12 @@ import json
 from time import sleep
 from urllib.parse import urlencode
 import random 
+from selenium.webdriver.common.by import By
+from pickle import NONE
+
+
+driver_path = '/usr/local/bin/chromedriver'
+
 
 # Scrapy
 import scrapy
@@ -20,11 +26,22 @@ configuration = None
 with open("config.json") as config_file:
   configuration = json.load(config_file)
 
+starDict = {"css-s88v13" : "5", "css-1nuumx7" : "4", "css-vl2edp" : "3", "css-18v8tui" : "2", "css-xd4dom": "1"}
+colorDict = {"css-hcqxoa" : "Recommended", "css-10xv9lv" : "No Review", "css-1kiw93k" : "Not Recommended", "css-1h93d4v" : "Moderate"}
+
+
+
 class GlassdoorSpider(InitSpider):
   name = "glassdoor_spider"
+  
+  # custom_settings = {
+  #         'FEED_FORMAT': 'csv',
+  #         'FEED_URI': '/Users/work/glassdoor-webscraper/glassdoor_robot/test1.csv'
+  #  }
+  
 
-  def __init__(self, company_name, **kwargs):
-    self.company_name = company_name
+  def __init__(self, review_url, **kwargs):
+    self.review_url = review_url
     self.cookies = None
     self.configuration = configuration
    
@@ -36,30 +53,59 @@ class GlassdoorSpider(InitSpider):
 
   def init_request(self):   
     # Login to Glassdoor using Selenium
-    driver = webdriver.Firefox(executable_path="./drivers/geckodriver")
-    driver.get("https://www.glassdoor.co.uk")
+    ########### use chrmoe #########33
+    # driver = webdriver.Firefox(executable_path="./drivers/geckodriver")
+    driver = webdriver.Chrome(executable_path=driver_path)
+    
+    
+    # driver.get("https://www.glassdoor.co.uk")
+    # # Apply wait condition to prevent overloading the server with requests
+    # self.custom_wait()    
+    # # Submit login credentials into form
+    # driver.find_element_by_class_name('sign-in').click()
+    # self.custom_wait()
+    # driver.find_element_by_name('username').send_keys(
+    #   configuration["GlassdoorConfig"]["Username"])
+    # self.custom_wait() 
+    # driver.find_element_by_name('password').send_keys(
+    #   configuration["GlassdoorConfig"]["Password"], Keys.ENTER)
+    # # Store the authenticated cookies so they can be copied to scrapy
+    # self.cookies = driver.get_cookies()
+    # # Close the web browser
+    # driver.quit()
+    # self.custom_wait()    
+    # # Generate request for the company search
+    # form_data = {'sc.keyword': self.company_name}
+    
+    driver.get("https://www.glassdoor.co.in/profile/login_input.htm?userOriginHook=HEADER_SIGNIN_LINK")
     # Apply wait condition to prevent overloading the server with requests
     self.custom_wait()    
     # Submit login credentials into form
-    driver.find_element_by_class_name('sign-in').click()
-    self.custom_wait()
-    driver.find_element_by_name('username').send_keys(
+    
+    driver.find_element(by=By.NAME, value='username').send_keys(
       configuration["GlassdoorConfig"]["Username"])
     self.custom_wait() 
-    driver.find_element_by_name('password').send_keys(
+    driver.find_element(by=By.NAME, value = 'password').send_keys(
       configuration["GlassdoorConfig"]["Password"], Keys.ENTER)
     # Store the authenticated cookies so they can be copied to scrapy
     self.cookies = driver.get_cookies()
     # Close the web browser
     driver.quit()
-    self.custom_wait()    
+    self.custom_wait()   
+    
+     
     # Generate request for the company search
-    form_data = {'sc.keyword': self.company_name}
+    # form_data = {'sc.keyword': self.company_name}
+    # yield scrapy.Request(
+    #   "https://www.glassdoor.co.uk/Reviews/company-reviews.htm?" + 
+    #   urlencode(form_data), 
+    #   cookies=self.cookies, 
+    #   callback=self.auth_company_search_parse
+    # )
     yield scrapy.Request(
-      "https://www.glassdoor.co.uk/Reviews/company-reviews.htm?" + 
-      urlencode(form_data), 
+      self.review_url, 
       cookies=self.cookies, 
-      callback=self.auth_company_search_parse
+      callback=self.company_reviews_parse
     )
 
   def auth_company_search_parse(self, response):
@@ -113,23 +159,39 @@ class GlassdoorSpider(InitSpider):
     #Iterate through each review element in the DOM tree
     reviews = response.css('ol.empReviews li.empReview')
     #Identify the opinions section and select the three options
+    ##### to be done ###########
+    ######## add values to those options ######
     for employee_review in reviews:
-      opinion_flags = employee_review.css('div.row.reviewBodyCell '+
-        'span *::text').extract()
-      opinion_dict = {
-        'recommend':None,
-        'outlook':None,
-        'opinion':None
-        }
-      for opinion in opinion_flags:
-        if 'Recommend' in opinion:
-          opinion_dict['recommend'] = opinion
-        elif 'Outlook' in opinion:
-          opinion_dict['outlook'] = opinion
-        elif 'CEO' in opinion:
-          opinion_dict['opinion'] = opinion
-        else:
-          continue
+        
+        
+      # opinion_flags = employee_review.css('div.row.reviewBodyCell '+
+      #   'span *::text').extract()
+      # opinion_dict = {
+      #   'recommend':None,
+      #   'outlook':None,
+      #   'opinion':None
+      #   }
+      # for opinion in opinion_flags:
+      #   if 'Recommend' in opinion:
+      #     opinion_dict['recommend'] = opinion
+      #   elif 'Outlook' in opinion:
+      #     opinion_dict['outlook'] = opinion
+      #   elif 'CEO' in opinion:
+      #     opinion_dict['opinion'] = opinion
+      #   else:
+      #     continue
+      
+      
+      recommends_labels = employee_review.css('div.d-flex.align-items-center.mr-std')
+      recommends = {}
+      for r in recommends_labels:
+          category = r.css('span::text').extract_first()
+          l = r.css('span::attr(class)').extract_first().split()[1] 
+          recommends[category] = colorDict[l]  
+          xxx = 1
+          
+      
+      
       verbatim_comment_dict = {
         'Pros': None,
         'Cons': None,
@@ -140,9 +202,9 @@ class GlassdoorSpider(InitSpider):
         'v2__EIReviewDetailsV2__fullWidth')
       
       for comment in verbatim_comments:
-        section = comment.css('p.strong.mb-0.mt-xsm::text').extract_first()
-        value = (comment.css('p.v2__EIReviewDetailsV2__bodyColor::text')
-          .extract_first())
+        section = comment.css('p.mb-0.strong::text').extract_first()
+        temp = (comment.css('p.mt-0.mb-0.pb.v2__EIReviewDetailsV2__bodyColor'))
+        value = (temp.css('span::text').extract_first()).replace('\r\n', ',')
         if section is not None:
           verbatim_comment_dict[section] = value
         else: 
@@ -150,55 +212,92 @@ class GlassdoorSpider(InitSpider):
       #if ceo_opinion_flag is not None:
       #  opinion_dict['opinion'] = ceo_opinion_flag + 'CEO'
       
-      sub_star_ratings = (employee_review
-        .css('span.gdBars.gdRatings.med::attr(title)').extract())
+      sub_labels = (employee_review.css('ul.pl-0 li'))
+      sub_ratings = {}
+      for s in sub_labels:
+          category = s.css('div:nth-child(1)::text').extract_first()
+          l = s.css('::attr(class)').extract_first().split()[0]
+          sub_ratings[category] = starDict[l]
+         
+         
+          
 
       review_item = GlassdoorReviewItem()
-
-      review_item['search_name'] = self.company_name
-      review_item['glassdoor_company_name']= (
-        response.css('div.header.cell.info p.h1.strong.tightAll::text')
-        .extract_first())
-      review_item['summary']= (
-        employee_review.css('.summary>a::text').extract_first()[1:-1])
-      review_item['author_title']=(
-        employee_review.css('span.authorJobTitle::text').extract_first())
-      review_item['author_location']= (employee_review.
+ 
+      # review_item['search_name'] = self.company_name
+      # review_item['glassdoor_company_name']= (
+      #   response.css('div.header.cell.info p.h1.strong.tightAll::text')
+      #   .extract_first())
+      
+      title_and_date = employee_review.css('span.authorJobTitle::text').extract_first().split('-')
+      review_item['review_date']= (title_and_date[0])
+      review_item['employee_title']=(title_and_date[1])
+      
+      review_item['employee_location']= (employee_review.
         css('span.authorLocation::text').extract_first())
-      review_item['recommends_flag']=opinion_dict['recommend']
-      review_item['outlook_flag']=opinion_dict['outlook']
-      review_item['ceo_opinion_flag']=opinion_dict['opinion']
-      review_item['main_text_description']= (
-        employee_review.css('p.mainText::text').extract_first())
-      review_item['pros_description']= verbatim_comment_dict['Pros']
-      review_item['cons_description']= verbatim_comment_dict['Cons']
-      review_item['advice_to_management_description'] = (
-        verbatim_comment_dict['Advice to Management'])
-      review_item['star_rating_overall']= (
-        float(employee_review.css('span.value-title::attr(title)').extract_first()))
-      review_item['star_rating_work_life_balance']= (
-        float(sub_star_ratings[0]) if len(sub_star_ratings) >= 1 else None)
-      review_item['star_rating_culture_and_values']= (
-        float(sub_star_ratings[1]) if len(sub_star_ratings)>=2 else None)
-      review_item['star_rating_career_opportunities']= (
-        float(sub_star_ratings[2]) if len(sub_star_ratings)>=3 else None)
-      review_item['star_rating_comp_and_benefits']= (
-        float(sub_star_ratings[3]) if len(sub_star_ratings)>=4 else None)
-      review_item['star_rating_senior_management']= (
-        float(sub_star_ratings[4]) if len(sub_star_ratings)>=5 else None)
-      review_item['review_date']= (
-        employee_review.css('time.date::attr(datetime)').extract_first())
+      
+      review_item['employee_status'] =  (
+          employee_review.css('div.d-flex.align-items-start.justify-content-between.pt-std.px-std>div>span::text').extract_first())
+      
+      
+      review_item['review_title'] = employee_review.css('h2>a::text').extract_first()
+      
+      review_item['helpful_count'] = None
+      review_text = employee_review.css('div.common__EiReviewDetailsStyle__socialHelpfulcontainer.pt-std::text').extract()
+      if 'found this review' in review_text:
+                str_list = review_text.text.split('\n')
+                sub = 'people found this review helpful'
+                for r in str_list:
+                    if sub in r:
+                        review_item['helpful_count'] = r[0]
+                        break
 
+      
+      review_item['pros']= verbatim_comment_dict['Pros']
+      review_item['cons']= verbatim_comment_dict['Cons']
+      
+      review_item['rating_overall']= (
+        employee_review.css('span.ratingNumber.mr-xsm::text').extract_first())
+      review_item['rating_balance']= (
+        sub_ratings['Work/Life Balance'] if 'Work/Life Balance' in sub_ratings.keys() else None)
+      review_item['rating_culture']= (
+        sub_ratings['Culture & Values'] if 'Culture & Values' in sub_ratings.keys() else None)
+      review_item['rating_diversity']= (
+        sub_ratings['Diversity & Inclusion'] if 'Diversity & Inclusion' in sub_ratings.keys() else None)
+      review_item['rating_career']= (
+        sub_ratings['Career Opportunities'] if 'Career Opportunities' in sub_ratings.keys() else None)
+      review_item['rating_comp']= (
+        sub_ratings['Compensation and Benefits'] if 'Compensation and Benefits' in sub_ratings.keys() else None)
+      review_item['rating_mgmt']= (
+        sub_ratings['Senior Management'] if 'Senior Management' in sub_ratings.keys() else None)
+      
+      
+      review_item['recommends']= (recommends['Recommend'] if 'Recommend' in recommends.keys() else None)
+      review_item['positive_outlook']=(recommends['Business Outlook'] if 'Business Outlook' in recommends.keys() else None)
+      review_item['approves_of_CEO']=(recommends['CEO Approval'] if 'CEO Approval' in recommends.keys() else None)
+      
+      # review_item['main_text_description']= (
+      #   employee_review.css('p.mainText::text').extract_first())
+
+      # review_item['advice_to_management_description'] = (
+      #   verbatim_comment_dict['Advice to Management'])
+      # review_item['star_rating_overall']= (
+      #   float(employee_review.css('span.value-title::attr(title)').extract_first()))
+      
+      
+      
+    
       # Return the review object for data processing
       yield review_item      
 
     # Find the pagination link and follow it to process the next set of reviews
-    follow_link = response.css('li.pagination__PaginationStyle__next>a:'
-      'not(.pagination__ArrowStyle__disabled)::attr(href)').extract_first()
-
+    # follow_link = response.css('li.pagination__PaginationStyle__next>a:'
+    #   'not(.pagination__ArrowStyle__disabled)::attr(href)').extract_first()
+    
+    follow_link = response.css('head>link[rel="next"]::attr(href)').extract_first()
+    
     if follow_link is not None:
       self.custom_wait()
-      yield scrapy.Request('https://www.glassdoor.co.uk'+follow_link
-        ,cookies=self.cookies, callback = self.company_reviews_parse)
+      yield scrapy.Request(follow_link,cookies=self.cookies, callback = self.company_reviews_parse)
     
 

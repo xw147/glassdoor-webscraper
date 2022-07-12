@@ -22,22 +22,34 @@ class GlassdoorCompanyItem(scrapy.Item):
   size = scrapy.Field()
 
 class GlassdoorReviewItem(scrapy.Item):
-  search_name = scrapy.Field()
-  glassdoor_company_name = scrapy.Field()
-  summary = scrapy.Field()
-  author_title = scrapy.Field()
-  author_location = scrapy.Field()
-  recommends_flag = scrapy.Field()
-  outlook_flag = scrapy.Field()
-  ceo_opinion_flag = scrapy.Field()
-  main_text_description = scrapy.Field()
-  pros_description = scrapy.Field()
-  cons_description = scrapy.Field()
-  advice_to_management_description = scrapy.Field()
-  star_rating_overall = scrapy.Field()
-  star_rating_work_life_balance = scrapy.Field()
-  star_rating_culture_and_values = scrapy.Field()
-  star_rating_career_opportunities = scrapy.Field()
-  star_rating_comp_and_benefits = scrapy.Field()
-  star_rating_senior_management = scrapy.Field()
+    
   review_date = scrapy.Field()
+  employee_title = scrapy.Field()
+  employee_location = scrapy.Field()
+  employee_status = scrapy.Field()
+  
+  review_title = scrapy.Field()
+  helpful_count = scrapy.Field()
+  pros = scrapy.Field()
+  cons = scrapy.Field()
+
+  
+  rating_overall = scrapy.Field()
+  rating_balance = scrapy.Field()
+  rating_culture = scrapy.Field()
+  rating_diversity = scrapy.Field()
+  rating_career = scrapy.Field()
+  rating_comp = scrapy.Field()
+  rating_mgmt = scrapy.Field()
+  
+  recommends = scrapy.Field()
+  positive_outlook = scrapy.Field()
+  approves_of_CEO = scrapy.Field()
+ 
+  
+  # main_text_description = scrapy.Field()
+  # search_name = scrapy.Field()
+  # glassdoor_company_name = scrapy.Field()
+  # advice_to_management_description = scrapy.Field()
+  
+  
