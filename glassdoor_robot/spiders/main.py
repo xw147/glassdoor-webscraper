@@ -16,8 +16,8 @@ if __name__ == '__main__':
 
 # start spider 
     # test_url = 'https://www.glassdoor.co.uk/Reviews/Leeds-City-Council-Reviews-E305827.htm'
-    test_url = 'https://www.glassdoor.co.uk/Reviews/LEEDS-Reviews-E1025428.htm'
-    # test_url = 'https://www.glassdoor.co.uk/Reviews/NHS-Reviews-E12873.htm'
+    # test_url = 'https://www.glassdoor.co.uk/Reviews/LEEDS-Reviews-E1025428.htm'
+    test_url = 'https://www.glassdoor.co.uk/Reviews/NHS-Reviews-E12873.htm'
     
     process = CrawlerProcess()
     process.crawl(GlassdoorSpider, test_url)

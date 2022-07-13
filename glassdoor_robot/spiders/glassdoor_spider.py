@@ -34,10 +34,11 @@ colorDict = {"css-hcqxoa" : "Recommended", "css-10xv9lv" : "No Review", "css-1ki
 class GlassdoorSpider(InitSpider):
   name = "glassdoor_spider"
   
-  # custom_settings = {
-  #         'FEED_FORMAT': 'csv',
-  #         'FEED_URI': '/Users/work/glassdoor-webscraper/glassdoor_robot/test1.csv'
-  #  }
+    
+  custom_settings = {
+            'FEED_FORMAT': 'csv',
+            'FEED_URI': '/Users/work/glassdoor-webscraper/glassdoor_robot/test1.csv'
+   }
   
 
   def __init__(self, review_url, **kwargs):
@@ -204,7 +205,9 @@ class GlassdoorSpider(InitSpider):
       for comment in verbatim_comments:
         section = comment.css('p.mb-0.strong::text').extract_first()
         temp = (comment.css('p.mt-0.mb-0.pb.v2__EIReviewDetailsV2__bodyColor'))
-        value = (temp.css('span::text').extract_first()).replace('\r\n', ',')
+        value = (temp.css('span::text').extract_first())
+        if type(value) == str:
+            value = value.replace('\r\n', ',')
         if section is not None:
           verbatim_comment_dict[section] = value
         else: 
